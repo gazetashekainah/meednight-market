@@ -828,7 +828,7 @@
                     <div>
                         <strong>${order.productName}</strong><br>
                         <small>Order #${order.id}</small><br>
-                        <small>${order.customerName} (${order.customerEmail})</small>
+                        <small>${order.customerName}</small>
                     </div>
                     <div>₱${order.price}</div>
                     <div><span class="status-badge status-${order.status}">${order.status.toUpperCase()}</span></div>
@@ -978,12 +978,7 @@
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('purchaseModal');
-            if (event.target === modal) {
-                closePurchaseModal();
-            }
-        }
+        // Removed the outside click functionality - modal only closes when X is clicked
     </script>
 </body>
 </html>
