@@ -57,6 +57,20 @@
             background: rgba(255,255,255,0.2);
         }
 
+        .admin-login-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-login-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -264,6 +278,22 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        /* Admin Login Styles */
+        .admin-login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+
+        .admin-login-form h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2d3748;
+        }
+
         /* Dashboard Styles */
         .dashboard-stats {
             display: grid;
@@ -363,6 +393,23 @@
             grid-column: 1 / -1;
         }
 
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .logout-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header-content {
@@ -392,8 +439,7 @@
             <div class="logo">🛍️ Digital Store Pro</div>
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="showTab('store')">Store</button>
-                <button class="nav-tab" onclick="showTab('orders')">Orders</button>
-                <button class="nav-tab" onclick="showTab('admin')">Admin</button>
+                <button class="admin-login-btn" onclick="showAdminLogin()">Admin Login</button>
             </div>
         </div>
     </header>
@@ -406,8 +452,31 @@
             </div>
         </div>
 
-        <!-- Orders Tab -->
+        <!-- Admin Login -->
+        <div id="adminLogin" class="tab-content">
+            <div class="admin-login-form">
+                <h2>🔐 Admin Login</h2>
+                <form onsubmit="adminLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Orders Tab (Admin Only) -->
         <div id="orders" class="tab-content">
+            <div class="admin-header">
+                <h1>Admin Dashboard</h1>
+                <button class="logout-btn" onclick="adminLogout()">Logout</button>
+            </div>
+            
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <div class="stat-number" id="totalOrders">0</div>
@@ -437,6 +506,11 @@
 
         <!-- Admin Tab -->
         <div id="admin" class="tab-content">
+            <div class="admin-header">
+                <h1>Admin Panel</h1>
+                <button class="logout-btn" onclick="adminLogout()">Logout</button>
+            </div>
+
             <div class="admin-section">
                 <h2 class="section-title">Add New Product</h2>
                 <form class="product-form" onsubmit="addProduct(event)">
@@ -562,16 +636,87 @@
             storeName: "Your Store Name"
         };
 
+        // Admin credentials (you should change these)
+        const adminCredentials = {
+            username: "admin",
+            password: "admin123"
+        };
+
+        let isAdminLoggedIn = false;
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
-            loadOrders();
-            updateStats();
-            loadAdminProducts();
         });
+
+        // Show admin login
+        function showAdminLogin() {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById('adminLogin').classList.add('active');
+        }
+
+        // Admin login
+        function adminLogin(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const username = formData.get('username');
+            const password = formData.get('password');
+
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                isAdminLoggedIn = true;
+                updateAdminNavigation();
+                loadOrders();
+                updateStats();
+                loadAdminProducts();
+                showTab('orders');
+                alert('Login successful! Welcome to admin panel.');
+            } else {
+                alert('Invalid username or password!');
+            }
+            event.target.reset();
+        }
+
+        // Admin logout
+        function adminLogout() {
+            isAdminLoggedIn = false;
+            updateAdminNavigation();
+            showTab('store');
+        }
+
+        // Update navigation based on admin status
+        function updateAdminNavigation() {
+            const navTabs = document.querySelector('.nav-tabs');
+            
+            if (isAdminLoggedIn) {
+                navTabs.innerHTML = `
+                    <button class="nav-tab" onclick="showTab('store')">Store</button>
+                    <button class="nav-tab" onclick="showTab('orders')">Orders</button>
+                    <button class="nav-tab" onclick="showTab('admin')">Admin</button>
+                    <button class="logout-btn" onclick="adminLogout()">Logout</button>
+                `;
+            } else {
+                navTabs.innerHTML = `
+                    <button class="nav-tab active" onclick="showTab('store')">Store</button>
+                    <button class="admin-login-btn" onclick="showAdminLogin()">Admin Login</button>
+                `;
+            }
+        }
 
         // Tab navigation
         function showTab(tabName) {
+            // Check if admin tab and not logged in
+            if ((tabName === 'orders' || tabName === 'admin') && !isAdminLoggedIn) {
+                showAdminLogin();
+                return;
+            }
+
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -582,7 +727,14 @@
 
             // Show selected tab
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            
+            // Update active tab button
+            const activeButton = Array.from(document.querySelectorAll('.nav-tab')).find(btn => 
+                btn.onclick && btn.onclick.toString().includes(tabName)
+            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
         }
 
         // Load products
@@ -646,8 +798,10 @@
             };
 
             orders.unshift(order);
-            updateStats();
-            loadOrders();
+            if (isAdminLoggedIn) {
+                updateStats();
+                loadOrders();
+            }
             closePurchaseModal();
             
             alert(`Order submitted successfully!\nOrder ID: ${order.id}\n\nYour order is being verified. You'll receive download link once payment is confirmed.`);
@@ -661,8 +815,10 @@
             return Math.random().toString(36).substr(2, 16);
         }
 
-        // Load orders
+        // Load orders (admin only)
         function loadOrders() {
+            if (!isAdminLoggedIn) return;
+            
             const container = document.getElementById('ordersContainer');
             if (orders.length === 0) {
                 container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #718096;">No orders yet</div>';
@@ -692,8 +848,10 @@
             `).join('');
         }
 
-        // Confirm order
+        // Confirm order (admin only)
         function confirmOrder(orderId) {
+            if (!isAdminLoggedIn) return;
+            
             const order = orders.find(o => o.id === orderId);
             if (order) {
                 order.status = 'confirmed';
@@ -705,8 +863,10 @@
             }
         }
 
-        // Reject order
+        // Reject order (admin only)
         function rejectOrder(orderId) {
+            if (!isAdminLoggedIn) return;
+            
             if (confirm('Are you sure you want to reject this order?')) {
                 orders = orders.filter(o => o.id !== orderId);
                 loadOrders();
@@ -714,8 +874,10 @@
             }
         }
 
-        // Generate download link
+        // Generate download link (admin only)
         function generateDownloadLink(orderId) {
+            if (!isAdminLoggedIn) return;
+            
             const order = orders.find(o => o.id === orderId);
             if (order) {
                 const downloadUrl = `${window.location.origin}/download/${order.downloadToken}/${order.productFileName}`;
@@ -737,8 +899,10 @@
             }
         }
 
-        // Update statistics
+        // Update statistics (admin only)
         function updateStats() {
+            if (!isAdminLoggedIn) return;
+            
             document.getElementById('totalOrders').textContent = orders.length;
             document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending').length;
             document.getElementById('completedOrders').textContent = orders.filter(o => o.status === 'delivered').length;
@@ -748,8 +912,10 @@
             document.getElementById('totalRevenue').textContent = `₱${revenue}`;
         }
 
-        // Add new product
+        // Add new product (admin only)
         function addProduct(event) {
+            if (!isAdminLoggedIn) return;
+            
             event.preventDefault();
             const formData = new FormData(event.target);
             
@@ -769,8 +935,10 @@
             alert('Product added successfully!');
         }
 
-        // Load admin products
+        // Load admin products (admin only)
         function loadAdminProducts() {
+            if (!isAdminLoggedIn) return;
+            
             const container = document.getElementById('adminProductsList');
             container.innerHTML = products.map(product => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1rem;">
@@ -783,8 +951,10 @@
             `).join('');
         }
 
-        // Delete product
+        // Delete product (admin only)
         function deleteProduct(productId) {
+            if (!isAdminLoggedIn) return;
+            
             if (confirm('Are you sure you want to delete this product?')) {
                 products = products.filter(p => p.id !== productId);
                 loadProducts();
@@ -792,14 +962,18 @@
             }
         }
 
-        // Update GCash number
+        // Update GCash number (admin only)
         function updateGCashNumber() {
+            if (!isAdminLoggedIn) return;
+            
             settings.gcashNumber = document.getElementById('gcashNumber').value;
             alert('GCash number updated!');
         }
 
-        // Update store name
+        // Update store name (admin only)
         function updateStoreName() {
+            if (!isAdminLoggedIn) return;
+            
             settings.storeName = document.getElementById('storeName').value;
             document.querySelector('.logo').textContent = `🛍️ ${settings.storeName}`;
             alert('Store name updated!');
